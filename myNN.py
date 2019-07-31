@@ -1,26 +1,3 @@
-#### This code pertains to the 2D machine learning results presented in Deep Convolutional Neural Networks for Eigenvalue Problems in Mechanics 
-#### There is an associated dataset publicly available in the lab's Harvard Dataverse. Any questions? Contact David at dfinolbe@gmail.com 
-
-#################################################################################################################################################
-'''
-Copyright 2019 David Finol, Yan Lu, Vijay Mahadevan, Ankit Srivastava
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
-################################################################################################################################################
-
-####### BASIC NOTES #########
-
-### Code is configured for multi-GPU computing(single CPU node with multiple GPUs) and Online Learning (batch-based generator data pipiline feeding) 
-### A functions python file complement this script. The data pipeline (generator) and other online normalization stats funcitons
-### The data generators need to be modified to read the HDF5 family of files of datasets provided. The 'family' driver and sprintf format (..._%d.h5) must be used when calling H5PY.
-### There is also a shell filed used to execute this file
-### This file was created on Python 2.7.6. Will need adjustment for newer versions. In particular printing format
-
 
 import numpy as np
 import keras
@@ -29,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, BatchNormalization
 from keras.layers import Conv2D, GlobalMaxPooling1D, MaxPooling2D
 from keras.optimizers import Adam
-from keras.utils.training_utils import multi_gpu_model
+#from keras.utils.training_utils import multi_gpu_model
 
 import functions_main as fn
 import numpy
@@ -42,16 +19,17 @@ import os
 import psutil
 
 
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-o", "--output", required=True,
-        help="path to output plot")
-ap.add_argument("-g", "--gpus", type=int, default=1,
-        help="# of GPUs to use for training")
-args = vars(ap.parse_args())
+# # construct the argument parse and parse the arguments
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-o", "--output", required=True,
+#         help="path to output plot")
+# ap.add_argument("-g", "--gpus", type=int, default=1,
+#         help="# of GPUs to use for training")
+# args = vars(ap.parse_args())
 
-# grab the number of GPUs and store it in a conveience variable
-G = args["gpus"]
+# # grab the number of GPUs and store it in a conveience variable
+# G = args["gpus"]
+G = 1
 
 
 ### Parameter Setup ###
@@ -62,8 +40,8 @@ np.random.seed(7)
 #file2 = '/share/apps/Phononics/Codes/Neural_networks/TwoDRandMat_fourier/Data/data2D.h5'# INPUT file, adjust to your directory
 #file3 = '/share/apps/Phononics/Codes/Neural_networks/TwoDRandMat_fourier/Data/random'
 file2 = "data/data2D_gzipped_famfiles_%d.h5"
-file_real_inp = '/home/ylu50/workingcopy/share/Neural_networks/TwoDRandMat_fourier_test/inputMatrix.npz'# Dataset for testing, which contains real optimized materials
-file_real_out = '/home/ylu50/workingcopy/share/Neural_networks/TwoDRandMat_fourier_test/Solution.npz' # Same as before but outputs
+file_real_inp = 'data/inputMatrix.npz'# Dataset for testing, which contains real optimized materials
+file_real_out = 'data/Solution.npz' # Same as before but outputs
 filenumber = 'GenTest'
 n_hidden_units = 50
 n_convpool_layers = 1
@@ -93,27 +71,27 @@ n_post_test = 5000
 xnorm_axis = (0,1,2,3)
 early_stop_delta = 0.01 # 0.01 change or above is considered improvement
 early_stop_patience = 10 # keep optimizing for 10 iterations under "no improvement"
-out_filepath = 'model_store/file_003.h5'
+#out_filepath = 'model_store/file_003.h5'
 
 
 ## Print Key Parameters for record keeping 
 
-print 'Network Params:'
-print file2
-print 'cost_function:', cost_function
-print 'n_hidden_units:',n_hidden_units
-print 'batch_size:', batch_size
-print 'kernel_size:', kernel_size
-print 'n_filters:', n_filters
-print 'drop_rate:', drop_rate
-print 'n_convpool_layers', n_convpool_layers
-print 'n_convlayers:', n_convlayers
-print 'n_reglayers:', n_reglayers
-print 'train_set_ratio:', train_set_ratio
-print 'valid_set_ratio:', valid_set_ratio
-print 'n_post_test', n_post_test
-print 'early_stop_delta:', early_stop_delta
-print 'early_stop_patience:', early_stop_patience
+print ('Network Params:')
+print (file2)
+print ('cost_function:', cost_function)
+print ('n_hidden_units:',n_hidden_units)
+print ('batch_size:', batch_size)
+print ('kernel_size:', kernel_size)
+print ('n_filters:', n_filters)
+print ('drop_rate:', drop_rate)
+print ('n_convpool_layers', n_convpool_layers)
+print ('n_convlayers:', n_convlayers)
+print ('n_reglayers:', n_reglayers)
+print ('train_set_ratio:', train_set_ratio)
+print ('valid_set_ratio:', valid_set_ratio)
+print ('n_post_test', n_post_test)
+print ('early_stop_delta:', early_stop_delta)
+print ('early_stop_patience:', early_stop_patience)
 
 ## Loading Data
 
@@ -122,7 +100,7 @@ print 'early_stop_patience:', early_stop_patience
 real_inp = np.load(file_real_inp)
 real_inp = real_inp['inputMatrix']
 real_out = np.load(file_real_out)
-real_out = np.real(real_out[real_out.keys()[1]][:,0:50])
+real_out = np.real(real_out[list(real_out.keys())[1]][:,0:50])
 print('real material info')
 print(real_inp.shape)
 print(real_out.shape)
@@ -184,19 +162,19 @@ if G <= 1:
         print("[INFO] training with 1 GPU...")
         model = model
 
-# otherwise, we are compiling using multiple GPUs
-else:
-        print("[INFO] training with {} GPUs...".format(G))
+# # otherwise, we are compiling using multiple GPUs
+# else:
+#         print("[INFO] training with {} GPUs...".format(G))
 
-        # we'll store a copy of the model on *every* GPU and then combine
-        # the results from the gradient updates on the CPU
-        with tf.device("/cpu:0"):
-                # initialize the model
-                model = model#MiniGoogLeNet.build(width=32, height=32, depth=3,
-                        #classes=10)
+#         # we'll store a copy of the model on *every* GPU and then combine
+#         # the results from the gradient updates on the CPU
+#         with tf.device("/cpu:0"):
+#                 # initialize the model
+#                 model = model#MiniGoogLeNet.build(width=32, height=32, depth=3,
+#                         #classes=10)
 
-        # make the model parallel
-        model = multi_gpu_model(model, gpus=G)
+#         # make the model parallel
+#         model = multi_gpu_model(model, gpus=G)
 
 
 def MAE(y_true, y_pred):
@@ -236,16 +214,16 @@ setlen = 64
 setlent1 = 64*78
 
 
-datasets = h5py.File(file2, 'r',driver='family',memb_size=2500*10**6)
+datasets = h5py.File("data/data2D_gzipped_famfiles_%d.h5", 'r',driver='family',memb_size=2500*10**6)
 dset1 = datasets[groupname]
 dset2 = datasets[gname_test2]
 dset3 = datasets[gname_test2]
 dset4 = datasets[gname_test3]
-dsetnames = dset1.keys()
-dsetnames2 = dset2.keys()
-dsetnames3 = dset3.keys()
-dsetnames4 = dset4.keys()
-ynsetlist = range(len(dsetnames)/2,1+len(dsetnames)/2)
+dsetnames = list(dset1.keys())
+dsetnames2 =list(dset2.keys())
+dsetnames3 = list(dset3.keys())
+dsetnames4 = list(dset4.keys())
+ynsetlist = range(int(len(dsetnames)/2),int(1+len(dsetnames)/2))
 groups = datasets.values()
 print('Input Shapes:')
 print(dset1[dsetnames[nset_train1]].shape)
@@ -427,30 +405,30 @@ model.fit_generator(generator = fn.generate_batches_from_hdf5_file_v3_4setmixed(
 score = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test1,groupname,xstat,ystat,axis,nset_test1,setlent1,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 1')
-print 'Test loss:', score[0]
-print 'Test error:', score[1]
+print ('Test loss:', score[0])
+print ('Test error:', score[1])
 
 score2 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test2,xstat,ystat,axis,nset_test2,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 
 print('Test Set 2')
 print(gname_test2)
-print 'Test loss:', score2[0]
-print 'Test error:', score2[1]
+print ('Test loss:', score2[0])
+print ('Test error:', score2[1])
 
 score3 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test3,xstat,ystat,axis,nset_test3,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 3')
 print(gname_test3)
-print 'Test loss:', score3[0]
-print 'Test error:', score3[1]
+print ('Test loss:', score3[0])
+print ('Test error:', score3[1])
 
 score4 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test4,xstat,ystat,axis,nset_test4,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 4')
 print(gname_test4)
-print 'Test loss:', score4[0]
-print 'Test error:', score4[1]
+print ('Test loss:', score4[0])
+print ('Test error:', score4[1])
 
 ### Real Material Test Set Predictions
 print('Test Set 5: Real Mat')
@@ -468,8 +446,8 @@ real_out_norm,ymean,yrange = fn.data_normalize(real_out[:,n_output[0]:n_output[1
 score5 = model.evaluate(real_inp_norm,real_out_norm)
 
 ### By Hand Prediction Check 
-print 'Test loss:', score5[0]
-print 'Test error:', score5[1]
+print ('Test loss:', score5[0])
+print ('Test error:', score5[1])
 
 y_pred_real = model.predict(real_inp_norm)
 print('Predictions')
