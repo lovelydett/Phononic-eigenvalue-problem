@@ -99,20 +99,20 @@ out_filepath = 'model_store/file_003.h5'
 
 print('Network Params:')
 print(file2)
-print 'cost_function:', cost_function
-print 'n_hidden_units:',n_hidden_units
-print 'batch_size:', batch_size
-print 'kernel_size:', kernel_size
-print 'n_filters:', n_filters
-print 'drop_rate:', drop_rate
-print 'n_convpool_layers', n_convpool_layers
-print 'n_convlayers:', n_convlayers
-print 'n_reglayers:', n_reglayers
-print 'train_set_ratio:', train_set_ratio
-print 'valid_set_ratio:', valid_set_ratio
-print 'n_post_test', n_post_test
-print 'early_stop_delta:', early_stop_delta
-print 'early_stop_patience:', early_stop_patience
+print ('cost_function:', cost_function)
+print ('n_hidden_units:',n_hidden_units)
+print ('batch_size:', batch_size)
+print ('kernel_size:', kernel_size)
+print ('n_filters:', n_filters)
+print ('drop_rate:', drop_rate)
+print ('n_convpool_layers', n_convpool_layers)
+print ('n_convlayers:', n_convlayers)
+print ('n_reglayers:', n_reglayers)
+print ('train_set_ratio:', train_set_ratio)
+print ('valid_set_ratio:', valid_set_ratio)
+print ('n_post_test', n_post_test)
+print ('early_stop_delta:', early_stop_delta)
+print ('early_stop_patience:', early_stop_patience)
 
 ## Loading Data
 
@@ -426,30 +426,30 @@ model.fit_generator(generator = fn.generate_batches_from_hdf5_file_v3_4setmixed(
 score = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test1,groupname,xstat,ystat,axis,nset_test1,setlent1,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 1')
-print 'Test loss:', score[0]
-print 'Test error:', score[1]
+print ('Test loss:', score[0])
+print ('Test error:', score[1])
 
 score2 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test2,xstat,ystat,axis,nset_test2,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 
 print('Test Set 2')
 print(gname_test2)
-print 'Test loss:', score2[0]
-print 'Test error:', score2[1]
+print ('Test loss:', score2[0])
+print ('Test error:', score2[1])
 
 score3 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test3,xstat,ystat,axis,nset_test3,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 3')
 print(gname_test3)
-print 'Test loss:', score3[0]
-print 'Test error:', score3[1]
+print ('Test loss:', score3[0])
+print ('Test error:', score3[1])
 
 score4 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test4,xstat,ystat,axis,nset_test4,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 4')
 print(gname_test4)
-print 'Test loss:', score4[0]
-print 'Test error:', score4[1]
+print ('Test loss:', score4[0])
+print ('Test error:', score4[1])
 
 ### Real Material Test Set Predictions
 print('Test Set 5: Real Mat')
@@ -467,8 +467,8 @@ real_out_norm,ymean,yrange = fn.data_normalize(real_out[:,n_output[0]:n_output[1
 score5 = model.evaluate(real_inp_norm,real_out_norm)
 
 ### By Hand Prediction Check 
-print 'Test loss:', score5[0]
-print 'Test error:', score5[1]
+print ('Test loss:', score5[0])
+print ('Test error:', score5[1])
 
 y_pred_real = model.predict(real_inp_norm)
 print('Predictions')

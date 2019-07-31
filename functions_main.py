@@ -967,9 +967,9 @@ def data_normalize_v2_modulus(x_data,norm_type,data_mean,data_range,norm_axis,ma
 def data_normalize_vold(x_data,norm_type,data_mean,data_range):
 
  print('Pre-norm Stats')
- print 'max:', np.amax(x_data)
- print 'min:', np.amin(x_data)
- print 'mean:', np.mean(x_data)
+ print ('max:', np.amax(x_data))
+ print ('min:', np.amin(x_data) )
+ print ('mean:', np.mean(x_data))
 
  if data_mean == None:
   data_mean = numpy.mean(x_data)
@@ -990,9 +990,9 @@ def data_normalize_vold(x_data,norm_type,data_mean,data_range):
    x_data = (x_data-data_mean)/data_range
 
  print('Post-norm Stats')
- print 'max:', np.amax(x_data)
- print 'min:', np.amin(x_data)
- print 'mean:', np.mean(x_data)
+ print ('max:', np.amax(x_data))
+ print ('min:', np.amin(x_data))
+ print ('mean:', np.mean(x_data))
 
  return x_data, data_mean, data_range
 
