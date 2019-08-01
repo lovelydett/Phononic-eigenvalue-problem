@@ -214,17 +214,17 @@ setlen = 64
 setlent1 = 64*78
 
 
-datasets = h5py.File("data/data2D_gzipped_famfiles_%d.h5", 'r',driver='family',memb_size=2500*10**6)
-dset1 = datasets[groupname]
-dset2 = datasets[gname_test2]
-dset3 = datasets[gname_test2]
-dset4 = datasets[gname_test3]
+datasets = h5py.File('data/data2D_gzipped_famfiles_%d.h5', 'r',driver='family',memb_size=2500*10**6)
+dset1 = datasets[groupname]#get random
+dset2 = datasets[gname_test2]#get random2
+dset3 = datasets[gname_test2]#get random3
+dset4 = datasets[gname_test3]#get random5
 dsetnames = list(dset1.keys())
 dsetnames2 =list(dset2.keys())
 dsetnames3 = list(dset3.keys())
 dsetnames4 = list(dset4.keys())
-ynsetlist = range(int(len(dsetnames)/2),int(1+len(dsetnames)/2))
-groups = datasets.values()
+#ynsetlist = range(int(len(dsetnames)/2),int(1+len(dsetnames)/2))
+#groups = datasets.values()
 print('Input Shapes:')
 print(dset1[dsetnames[nset_train1]].shape)
 print(dset2[dsetnames2[nset_test2]].shape)

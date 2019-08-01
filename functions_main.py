@@ -41,7 +41,7 @@ def get_variance_batch(filepath,groupname,dsetindex,axis,mean,n_output):
     :return: ndarray xs_var and xs_max: variance and max of the dataset.
     """
 
-    datasets = h5py.File(filepath, "r")
+    datasets = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
     f = datasets[groupname]
     groups = datasets.values()
     dsetnames = f.keys()
@@ -49,25 +49,29 @@ def get_variance_batch(filepath,groupname,dsetindex,axis,mean,n_output):
     # check available memory and divide the mean calculation in steps
 #    print(psutil.virtual_memory()[1])
     total_memory = 0.5 * psutil.virtual_memory()[1] # In bytes. Take 1/2 of what is available, just to make sure.
-    filesize = os.path.getsize(filepath)/len(groups)
+    #filesize = os.path.getsize(filepath)/len(groups)
+    filesize = 0
+    for i in range(7):
+        filesize+=os.path.getsize('data/data2D_gzipped_famfiles_'+str(i)+'.h5')
+    filesize/=len(groups)
     steps = int(np.ceil(filesize/total_memory))
-    n_rows = f[dsetnames[dsetindex]].shape[0]
+    n_rows = f[list(dsetnames)[dsetindex]].shape[0]
     stepsize = int(n_rows / float(steps))
 
     xs_max_arr = None
     xs_var_arr = None
-    for i in xrange(steps):
+    for i in range(steps):
         if xs_var_arr is None: # create xs_mean_arr that stores intermediate mean_temp results
-            xs_var_arr = np.zeros((steps, ) + f[dsetnames[dsetindex]][:,n_output[0]:n_output[1]].shape[1:], dtype=datatype)
-            xs_max_arr = np.zeros((steps, ) + f[dsetnames[dsetindex]][:,n_output[0]:n_output[1]].shape[1:], dtype=datatype)
+            xs_var_arr = np.zeros((steps, ) + f[list(dsetnames)[dsetindex]][:,n_output[0]:n_output[1]].shape[1:], dtype=datatype)
+            xs_max_arr = np.zeros((steps, ) + f[list(dsetnames)[dsetindex]][:,n_output[0]:n_output[1]].shape[1:], dtype=datatype)
 
         if i == steps-1: # for the last step, calculate mean till the end of the file
-            data_temp = np.real(f[dsetnames[dsetindex]][i * stepsize: n_rows,n_output[0]:n_output[1]])
+            data_temp = np.real(f[list(dsetnames)[dsetindex]][i * stepsize: n_rows,n_output[0]:n_output[1]])
             max_temp = np.amax(data_temp,axis=axis)
             xs_var_temp = np.var(data_temp, axis=axis, dtype=datatype)
 #            xs_var_temp = np.sum(np.square(f['matrices'][i * stepsize: n_rows] - mean),axis=axis)
         else:
-            data_temp = np.real(f[dsetnames[dsetindex]][i * stepsize: (i+1) * stepsize,n_output[0]:n_output[1]])
+            data_temp = np.real(f[list(dsetnames)[dsetindex]][i * stepsize: (i+1) * stepsize,n_output[0]:n_output[1]])
             max_temp = np.amax(data_temp,axis=axis)
             xs_var_temp = np.var(data_temp, axis=axis, dtype=datatype)
 #            xs_var_temp = np.sum(np.square(f['matrices'][i * stepsize: (i+1) * stepsize]- mean),axis=axis)
@@ -91,7 +95,7 @@ def get_mean_batch(filepath,groupname,dsetindex,axis,n_output):
     :return: ndarray xs_mean: mean of the dataset.
     """
 
-    datasets = h5py.File(filepath, "r")
+    datasets = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
     f = datasets[groupname]
     groups = datasets.values()
     dsetnames = f.keys()
@@ -101,23 +105,29 @@ def get_mean_batch(filepath,groupname,dsetindex,axis,n_output):
     # check available memory and divide the mean calculation in steps
 #    print(psutil.virtual_memory()[1])
     total_memory = 0.5 * psutil.virtual_memory()[1] # In bytes. Take 1/2 of what is available, just to make sure.
-    filesize = os.path.getsize(filepath)/len(groups)
+#     filesize = os.path.getsize(filepath)/len(groups)
+    filesize = 0
+    for i in range(7):
+        filesize+=os.path.getsize('data/data2D_gzipped_famfiles_'+str(i)+'.h5')
+    filesize/=len(groups)
     steps = int(np.ceil(filesize/total_memory))
-    n_rows = f[dsetnames[dsetindex]].shape[0]
+    n_rows = f[list(dsetnames)[dsetindex]].shape[0]
     stepsize = int(n_rows / float(steps))
-#    print('info')
-#    print(n_rows)
-#    print(stepsize)
+    print('----info of batch mean----')
+    print("filesize:"+str(filesize))
+    print("half of total_memory:"+str(total_memory))
+    print("steps:"+str(steps))
+    print("stepsize:"+str(stepsize))
     xs_mean_arr = None
-    for i in xrange(steps):
+    for i in range(steps):
         if xs_mean_arr is None: # create xs_mean_arr that stores intermediate mean_temp results
-            xs_mean_arr = np.zeros((steps, ) + f[dsetnames[dsetindex]][:,n_output[0]:n_output[1]].shape[1:], dtype=datatype)
+            xs_mean_arr = np.zeros((steps, ) + f[list(dsetnames)[dsetindex]][:,n_output[0]:n_output[1]].shape[1:], dtype=datatype)
 
         if i == steps-1: # for the last step, calculate mean till the end of the file
-            xs_mean_temp = np.mean(np.real(f[dsetnames[dsetindex]][i * stepsize: n_rows,n_output[0]:n_output[1]]), axis=axis, dtype = datatype)
+            xs_mean_temp = np.mean(np.real(f[list(dsetnames)[dsetindex]][i * stepsize: n_rows,n_output[0]:n_output[1]]), axis=axis, dtype = datatype)
             #print(i)
         else:
-            xs_mean_temp = np.mean(np.real(f[dsetnames[dsetindex]][i*stepsize : (i+1) * stepsize,n_output[0]:n_output[1]]), axis=axis, dtype=datatype)
+            xs_mean_temp = np.mean(np.real(f[list(dsetnames)[dsetindex]][i*stepsize : (i+1) * stepsize,n_output[0]:n_output[1]]), axis=axis, dtype=datatype)
         xs_mean_arr[i] = xs_mean_temp
 
     xs_mean = np.mean(xs_mean_arr, axis=axis, dtype= datatype)
@@ -140,7 +150,7 @@ def generate_batches_from_hdf5_file_randomL_v2(filepath, batchsize,samplevec,gro
     dimensions = (batchsize, 128, 128, 5)
     nsetvec =  np.arange(0,nsetvec)
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
@@ -200,7 +210,7 @@ def generate_batches_from_hdf5_file_v3_4setmixed(filepath, batchsize,samplevec,g
     dimensions = (batchsize, 128, 128, 5)
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         f2 = fil[gname2]
         f3 = fil[gname3]
@@ -282,7 +292,7 @@ def generate_batches_from_hdf5_file_v3_3setmixed(filepath, batchsize,samplevec,g
     dimensions = (batchsize, 128, 128, 5) # 28x28 pixel, one channel
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         f2 = fil[gname2]
         f3 = fil[gname3]
@@ -379,7 +389,7 @@ def generate_batches_from_hdf5_file_v2_3setmixed(filepath, batchsize,samplevec,g
     dimensions = (batchsize, 128, 128, 5) # 28x28 pixel, one channel
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         f2 = fil[gname2]
         f3 = fil[gname3]
@@ -465,7 +475,7 @@ def generate_batches_from_hdf5_file_v2_2setmixed(filepath, batchsize,samplevec,g
     dimensions = (batchsize, 128, 128, 5) # 28x28 pixel, one channel
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         f2 = fil[gname2]
         dsnames = f.keys()
@@ -548,7 +558,7 @@ def generate_batches_from_hdf5_file_pred_v2(filepath, batchsize,samplevec,groupn
     dimensions = (batchsize, 128, 128, 5) # 28x28 pixel, one channel
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
@@ -613,7 +623,7 @@ def generate_batches_from_hdf5_file_test_v3(filepath, batchsize,samplevec,groupn
     mat_norm = (1.0,1.0,1.0)
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
@@ -672,7 +682,7 @@ def generate_batches_from_hdf5_file_v3(filepath, batchsize,samplevec,groupname,x
     mat_norm = (1.0,1.0,1.0)
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
@@ -723,7 +733,7 @@ def generate_batches_from_hdf5_file_v2(filepath, batchsize,samplevec,groupname,x
     dimensions = (batchsize, 128, 128, 5) # 28x28 pixel, one channel
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
@@ -777,7 +787,7 @@ def generate_batches_from_hdf5_file_v3(filepath, batchsize,samplevec,groupname,x
     mat_norm = (1.0,1.0,1.0)
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
@@ -828,7 +838,7 @@ def generate_batches_from_hdf5_file_v2(filepath, batchsize,samplevec,groupname,x
     dimensions = (batchsize, 128, 128, 5) # 28x28 pixel, one channel
 
     while 1:
-        fil = h5py.File(filepath, "r")
+        fil = h5py.File(filepath, "r",driver='family',memb_size=2500*10**6)
         f = fil[groupname]
         dsnames = f.keys()
 #        filesize = len(f[dsnames[0]])
