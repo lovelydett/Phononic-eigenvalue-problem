@@ -29,9 +29,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, BatchNormalization
 from keras.layers import Conv2D, GlobalMaxPooling1D, MaxPooling2D
 from keras.optimizers import Adam
-from keras.utils.training_utils import multi_gpu_model
+import functions as fn
 
-import functions_main as fn
 import numpy
 import csv
 import h5py
@@ -43,86 +42,86 @@ import psutil
 
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-o", "--output", required=True,
-        help="path to output plot")
-ap.add_argument("-g", "--gpus", type=int, default=1,
-        help="# of GPUs to use for training")
-args = vars(ap.parse_args())
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-o", "--output", required=True,
+#         help="path to output plot")
+# ap.add_argument("-g", "--gpus", type=int, default=1,
+#         help="# of GPUs to use for training")
+# args = vars(ap.parse_args())
 
-# grab the number of GPUs and store it in a conveience variable
-G = args["gpus"]
+# # grab the number of GPUs and store it in a conveience variable
+# G = args["gpus"]
 
+G = 1
 
 ### Parameter Setup ###
 
 dataset_title = '-2D Bandgap Ratio, Unconstrained Mat Properties-'
 np.random.seed(7)
-#file1 = '/share/apps/Phononics/Codes/Neural_networks/TwoDRandMat_fourier/DataNN1.npz' # ignore
-#file2 = '/share/apps/Phononics/Codes/Neural_networks/TwoDRandMat_fourier/Data/data2D.h5'# INPUT file, adjust to your directory
-#file3 = '/share/apps/Phononics/Codes/Neural_networks/TwoDRandMat_fourier/Data/random'
-file2 = "data/data2D_gzipped_famfiles_%d.h5"
-file_real_inp = '/home/ylu50/workingcopy/share/Neural_networks/TwoDRandMat_fourier_test/inputMatrix.npz'# Dataset for testing, which contains real optimized materials
-file_real_out = '/home/ylu50/workingcopy/share/Neural_networks/TwoDRandMat_fourier_test/Solution.npz' # Same as before but outputs
+# file1 = 'E://iit_proj/data/DataNN1.npz'                     # ignore
+file2 = 'E://iit_proj/data/data2D_gzipped_famfiles_%d.h5'   # INPUT file, adjust to your directory
+# file3 = '/share/apps/Phononics/Codes/Neural_networks/TwoDRandMat_fourier/Data/random'
+file_real_inp = 'E://iit_proj/data/inputMatrix.npz'      # Dataset for testing, which contains real optimized materials
+file_real_out = 'E://iit_proj/data/Solution.npz'            # Same as before but outputs
 filenumber = 'GenTest'
 n_hidden_units = 50
 n_convpool_layers = 1
 n_convlayers = 2
 n_reglayers = 2
-max_poolsize = (2,2)
+max_poolsize = (2, 2)
 train_set_ratio = 0.7
 valid_set_ratio = 0.15
-set_split_ratio34 = 0.5
+set_split_ratio34 = 0.5  # ####!
 drop_rate = 0.0
-n_filters = 130 #130 before 
+n_filters = 130   # 130 before
 reg_factor = 0.0
-kernel_size = (2,2)
+kernel_size = (2, 2)
 input_strides = 1
 kernel_init = 'uniform'
 cost_function = 'mean_squared_error'
-batch_size = 64#128
+batch_size = 1024     # 128
 feed_batch_size = 256
-input_sample_shape = [128,128,5]
-#target_sample_shape = [50]
+input_sample_shape = [128, 128, 5]
+# target_sample_shape = [50]
 n_epochs = 35
-n_output = [0,50]
+n_output = [0, 50]
 n_set1 = 10000
 n_set2 = None
 n_set100 = 10000 
 n_post_test = 5000
-xnorm_axis = (0,1,2,3)
-early_stop_delta = 0.01 # 0.01 change or above is considered improvement
-early_stop_patience = 10 # keep optimizing for 10 iterations under "no improvement"
+xnorm_axis = (0, 1, 2, 3)  # ####!
+early_stop_delta = 0.01    # 0.01 change or above is considered improvement
+early_stop_patience = 10   # keep optimizing for 10 iterations under "no improvement"
 out_filepath = 'model_store/file_003.h5'
 
 
 ## Print Key Parameters for record keeping 
 
-print 'Network Params:'
-print file2
-print 'cost_function:', cost_function
-print 'n_hidden_units:',n_hidden_units
-print 'batch_size:', batch_size
-print 'kernel_size:', kernel_size
-print 'n_filters:', n_filters
-print 'drop_rate:', drop_rate
-print 'n_convpool_layers', n_convpool_layers
-print 'n_convlayers:', n_convlayers
-print 'n_reglayers:', n_reglayers
-print 'train_set_ratio:', train_set_ratio
-print 'valid_set_ratio:', valid_set_ratio
-print 'n_post_test', n_post_test
-print 'early_stop_delta:', early_stop_delta
-print 'early_stop_patience:', early_stop_patience
+print('Network Params:')
+print(file2)
+print ('cost_function:',  cost_function)
+print ('n_hidden_units:', n_hidden_units)
+print ('batch_size:',     batch_size)
+print ('kernel_size:',    kernel_size)
+print ('n_filters:',      n_filters)
+print ('drop_rate:',      drop_rate)
+print ('n_convpool_layers', n_convpool_layers)
+print ('n_convlayers:',   n_convlayers)
+print ('n_reglayers:',    n_reglayers)
+print ('train_set_ratio:', train_set_ratio)
+print ('valid_set_ratio:', valid_set_ratio)
+print ('n_post_test', n_post_test)
+print ('early_stop_delta:', early_stop_delta)
+print ('early_stop_patience:', early_stop_patience)
 
 ## Loading Data
 
 ## Input Data Check by-hand 
 
 real_inp = np.load(file_real_inp)
-real_inp = real_inp['inputMatrix']
+real_inp = real_inp['inputMatrix']  # ####!
 real_out = np.load(file_real_out)
-real_out = np.real(real_out[real_out.keys()[1]][:,0:50])
+real_out = np.real(real_out[list(real_out.keys())[1]][:,0:50])
 print('real material info')
 print(real_inp.shape)
 print(real_out.shape)
@@ -133,40 +132,30 @@ print('out mean and max')
 print(np.mean(real_out))
 print(np.amax(real_out))
 
-gc.collect()
+gc.collect()   # garbage collect
 
 ### Pipilining Large Datasets ###
 
 ## Building Model
 
-model=Sequential()
+model = Sequential()
 
-model.add(Conv2D(filters=n_filters, kernel_size = kernel_size ,strides= input_strides,
-                 input_shape=(128,128,5),kernel_initializer= kernel_init))
+model.add(Conv2D(filters=n_filters, kernel_size=kernel_size,strides=input_strides,
+                 input_shape=(128, 128, 5), kernel_initializer=kernel_init))
 model.add(Activation('relu'))
-
-#model.add(Conv2D(filters=n_filters, kernel_size = kernel_size ,strides= input_strides,
-#                 kernel_initializer= kernel_init))
-#model.add(Activation('relu'))
-
-#model.add(Conv2D(filters=n_filters, kernel_size = kernel_size ,strides= input_strides,
-#                 kernel_initializer= kernel_init))
-#model.add(Activation('relu'))
-
-
 model.add(MaxPooling2D(pool_size=max_poolsize))
 
-#model.add(BatchNormalization())
+# model.add(BatchNormalization())
 
-model.add(Conv2D(filters=n_filters, kernel_size = kernel_size ,strides= input_strides,
-                 kernel_initializer= kernel_init))
+model.add(Conv2D(filters=n_filters, kernel_size=kernel_size,strides=input_strides,
+                 input_shape=(128, 128, 5), kernel_initializer=kernel_init))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=max_poolsize))
 
 #model.add(BatchNormalization())
 
-model.add(Conv2D(filters=n_filters, kernel_size = kernel_size ,strides= input_strides,
-                 kernel_initializer= kernel_init))
+model.add(Conv2D(filters=n_filters, kernel_size=kernel_size,strides=input_strides,
+                 input_shape=(128, 128, 5), kernel_initializer=kernel_init))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=max_poolsize))
 
@@ -175,29 +164,30 @@ model.add(Dense(n_hidden_units))
 model.add(Activation('relu'))
 model.add(Dense(n_output[1]-n_output[0], activation='linear'))
 
-earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=early_stop_delta, patience=early_stop_patience, verbose=2, mode='auto')
+earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=early_stop_delta,
+                                              patience=early_stop_patience, verbose=2, mode='auto')
 
 model.summary()
 
 # check to see if we are compiling using just a single GPU
 if G <= 1:
-        print("[INFO] training with 1 GPU...")
-        model = model
+    print("[INFO] training with 1 GPU...")
+    model = model
 
 # otherwise, we are compiling using multiple GPUs
 else:
-        print("[INFO] training with {} GPUs...".format(G))
+    print("[INFO] training with {} GPUs...".format(G))
 
-        # we'll store a copy of the model on *every* GPU and then combine
-        # the results from the gradient updates on the CPU
-        with tf.device("/cpu:0"):
-                # initialize the model
-                model = model#MiniGoogLeNet.build(width=32, height=32, depth=3,
-                        #classes=10)
+    # we'll store a copy of the model on *every* GPU and then combine
+    # the results from the gradient updates on the CPU
+    with tf.device("/cpu:0"):
+            # initialize the model
+            model = model#MiniGoogLeNet.build(width=32, height=32, depth=3,
+                    #classes=10)
 
-        # make the model parallel
-        model = multi_gpu_model(model, gpus=G)
-
+    # make the model parallel
+    # model = multi_gpu_model(model, gpus=G)
+    model = model
 
 def MAE(y_true, y_pred):
     return K.mean(K.abs(y_pred-y_true)/K.abs(y_true))
@@ -210,9 +200,8 @@ model.compile(loss=cost_function, optimizer='adam', metrics=[MAE])
 
 
 
-
 ## Data Normalization
-xnsetlist = range(0,1)
+xnsetlist = range(0, 1)
 
 ### Datasets Info
 
@@ -225,8 +214,8 @@ gname_test3 = 'random3'
 gname_test4 = 'random5'
 
 nset_train2 = 0
-nset_train1 = 782 #8*60/4
-nset_trainranL = 782#8*40
+nset_train1 = 782      #8*60/4
+nset_trainranL = 782   #8*40
 nset_train3 = 0
 nset_test1 = 1
 nset_test2 = 50
@@ -236,16 +225,16 @@ setlen = 64
 setlent1 = 64*78
 
 
-datasets = h5py.File(file2, 'r',driver='family',memb_size=2500*10**6)
+datasets = h5py.File(file2, 'r', driver='family', memb_size=2500*10**6)
 dset1 = datasets[groupname]
 dset2 = datasets[gname_test2]
 dset3 = datasets[gname_test2]
 dset4 = datasets[gname_test3]
-dsetnames = dset1.keys()
-dsetnames2 = dset2.keys()
-dsetnames3 = dset3.keys()
-dsetnames4 = dset4.keys()
-ynsetlist = range(len(dsetnames)/2,1+len(dsetnames)/2)
+dsetnames = list(dset1.keys())
+dsetnames2 = list(dset2.keys())
+dsetnames3 = list(dset3.keys())
+dsetnames4 = list(dset4.keys())
+ynsetlist = range(int(len(dsetnames)/2), int(1+len(dsetnames)/2))
 groups = datasets.values()
 print('Input Shapes:')
 print(dset1[dsetnames[nset_train1]].shape)
@@ -255,17 +244,17 @@ print(dset4[dsetnames4[nset_test4]].shape)
 gc.collect()
 
 ## Getting Data moments
-xdind = 0#nset_train1
-ydind = (len(dsetnames)/2) + xdind
-xaxis = (0,1,2,3)
-axis = (0,1,2)
-yaxis = (0,1)
+xdind = 0      # nset_train1
+ydind = int(len(dsetnames)/2) + xdind
+xaxis = (0, 1, 2, 3)  # ####!
+axis = (0, 1, 2)
+yaxis = (0, 1)
 yaxis2 = (0)
-xn_output =[0,-1]#dset1[dsetnames[nset_train1]].shape[1]]
-x_mean = fn.get_mean_batch(file2,groupname,xdind,axis,xn_output)
-x_var,x_max = fn.get_variance_batch(file2,groupname,xdind,axis,x_mean,xn_output)
-x_max = np.amax(dset1[dsetnames[xdind]],axis=axis)
-x_var2 = np.var(dset1[dsetnames[xdind]],axis=axis)
+xn_output = [0, -1]    # dset1[dsetnames[nset_train1]].shape[1]]
+x_mean = fn.get_mean_batch(file2, groupname, xdind, axis, xn_output)
+x_var, x_max = fn.get_variance_batch(file2, groupname, xdind, axis, x_mean,xn_output)
+x_max = np.amax(dset1[dsetnames[xdind]], axis=axis)
+x_var2 = np.var(dset1[dsetnames[xdind]], axis=axis)
 
 
 x_m0 = np.mean(dset1[dsetnames[xdind]][:,:,:,0])
@@ -296,37 +285,39 @@ print(x_m4)
 
 print('Output: Global Mean and Variance, Max')
 print(y_mean)
-#print(y_var)
+# print(y_var)
 print(y_max)
 print(dsetnames[ydind])
 print('mean on vector form:')
 print(y_mean2)
-#print(y_var2)
-#print(y_max2)
+# print(y_var2)
+# print(y_max2)
 print(yaltmax)
 
 
 ## This part allows you to try distinct 
 # normalization approaches, x_stat and y_stat are the normalization statistics for all batches
 y_mean2 = y_mean2*0
-mat_n = (1e+11,1e+3,0.0001,0.0001,0.0001)
-mat_n = (1.0,1.0,1.0,1.0,1.0)
+mat_n = (1e+11, 1e+3, 0.0001, 0.0001, 0.0001)
+mat_n = (1.0, 1.0, 1.0, 1.0, 1.0)
 x_mean = x_mean/mat_n
 xstat = [x_mean,x_var,x_max]
-#ystat = [y_mean,y_max]
+# ystat = [y_mean,y_max]
 ystat = [y_mean2,yaltmax]
  
 print('Training started..')
 
 
 ### Parameters for data generator/pipiline ###
-feed_batch_size = 16 # Number of batches to feed into a single GPU (dependent on mememory size and overall batch size needed for training)
+# Number of batches to feed into a single GPU 
+# (dependent on mememory size and overall batch size needed for training)
+feed_batch_size = 16 
 n = 1
 mix_factor = 2
-samplevec_train = [0,feed_batch_size * G*100*n] # starting and ending index for training examples batches to used in the generator (training)
-samplevec_val = [feed_batch_size * G*100*n,feed_batch_size * G*150*n] # same as above but for validation
+samplevec_train = [0, feed_batch_size * G*100*n]  # starting and ending index for training examples batches to used in the generator (training)
+samplevec_val = [feed_batch_size * G*100*n, feed_batch_size * G*150*n]  # same as above but for validation
 #set3 samplevec_val = [feed_batch_size * G*600/2,feed_batch_size * G*800/2]
-samplevec_test = [feed_batch_size * G*0*n,feed_batch_size * G*20*n]
+samplevec_test = [feed_batch_size * G*0*n, feed_batch_size * G*20*n]
 #samplevec_test_pred = [feed_batch_size * G*120*n,feed_batch_size * G*121*n]
 samplevec_train2 = [0,setlen*nset_train2]
 samplevec_train_mixed = [0,setlen*nset_train1]
@@ -346,16 +337,20 @@ print(filesize)
 # Batch Training 
 perform_shuffle = False 
 repeat_count = 1
-model_dir = '/home/dfinolbe/DeepBand/2D_Case/trained_nets'# Directory to store output model
+model_dir = 'E://iit_proj/outcomes'# Directory to store output model
 
-## As it is explained in the Paper, training with a combination of distinct material phases yields the models with the best generalization results
+## As it is explained in the Paper, training with a combination of distinct material phases yields 
+#  the models with the best generalization results
 ## Below you will find distinct generators (data pipilines) that will feed batches with different ratios of these phases
 
 ### TRAIN SET Random Large (Single Phase Material)
-#model.fit_generator(generator = fn.generate_batches_from_hdf5_file_randomL_v2(file2,feed_batch_size*G,samplevec_trainranL,groupname,xstat,ystat,axis,nset_trainranL,setlen,n_output),
+#model.fit_generator(generator = fn.generate_batches_from_hdf5_file_randomL_v2(file2,
+#                    feed_batch_size*G,samplevec_trainranL,groupname,xstat,ystat,axis,nset_trainranL,
+#                    setlen,n_output),
 #      steps_per_epoch = samplevec_trainranL[1] // (feed_batch_size * G),
 ##      use_multiprocessing=True,
-#      validation_data = fn.generate_batches_from_hdf5_file_v3(file2,feed_batch_size*G,samplevec_valran,groupname,xstat,ystat,axis,nset_train2,n_output),
+#      validation_data = fn.generate_batches_from_hdf5_file_v3(file2,feed_batch_size*G,
+#      samplevec_valran,groupname,xstat,ystat,axis,nset_train2,n_output),
 #      validation_steps = abs(samplevec_val[0]-samplevec_val[1]) // (feed_batch_size * G),
 #      verbose=2,epochs = n_epochs)
 
@@ -367,7 +362,7 @@ model.fit_generator(generator = fn.generate_batches_from_hdf5_file_v3_4setmixed(
       steps_per_epoch = samplevec_train_mixed_v3[1] // (feed_batch_size * G),
       validation_data = fn.generate_batches_from_hdf5_file_v2(file2,feed_batch_size*G,samplevec_val,groupname,xstat,ystat,axis,nset_train2),
       validation_steps = abs(samplevec_val[0]-samplevec_val[1]) // (feed_batch_size * G),
-      verbose=2,epochs = n_epochs)
+      verbose=2,epochs=n_epochs)
 
 
 ### TRAIN SET 3 Mixed v3 (64 batch files)
@@ -427,30 +422,30 @@ model.fit_generator(generator = fn.generate_batches_from_hdf5_file_v3_4setmixed(
 score = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test1,groupname,xstat,ystat,axis,nset_test1,setlent1,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 1')
-print 'Test loss:', score[0]
-print 'Test error:', score[1]
+print ('Test loss:', score[0])
+print ('Test error:', score[1])
 
 score2 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test2,xstat,ystat,axis,nset_test2,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 
 print('Test Set 2')
 print(gname_test2)
-print 'Test loss:', score2[0]
-print 'Test error:', score2[1]
+print ('Test loss:', score2[0])
+print ('Test error:', score2[1])
 
 score3 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test3,xstat,ystat,axis,nset_test3,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 3')
 print(gname_test3)
-print 'Test loss:', score3[0]
-print 'Test error:', score3[1]
+print ('Test loss:', score3[0])
+print ('Test error:', score3[1])
 
 score4 = model.evaluate_generator(generator = fn.generate_batches_from_hdf5_file_test_v3(file2,feed_batch_size*G,samplevec_test2,gname_test4,xstat,ystat,axis,nset_test4,setlen,n_output),
       steps = abs(samplevec_test2[0]-samplevec_test2[1]) // (feed_batch_size * G))
 print('Test Set 4')
 print(gname_test4)
-print 'Test loss:', score4[0]
-print 'Test error:', score4[1]
+print ('Test loss:', score4[0])
+print ('Test error:', score4[1])
 
 ### Real Material Test Set Predictions
 print('Test Set 5: Real Mat')
@@ -468,8 +463,8 @@ real_out_norm,ymean,yrange = fn.data_normalize(real_out[:,n_output[0]:n_output[1
 score5 = model.evaluate(real_inp_norm,real_out_norm)
 
 ### By Hand Prediction Check 
-print 'Test loss:', score5[0]
-print 'Test error:', score5[1]
+print ('Test loss:', score5[0])
+print ('Test error:', score5[1])
 
 y_pred_real = model.predict(real_inp_norm)
 print('Predictions')
