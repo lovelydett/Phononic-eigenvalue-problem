@@ -1,7 +1,9 @@
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/QVPTPA
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/YYFUNW
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/JZ95PW
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/5GJ35G
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/C1XMUR
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/RWB3IE
-wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/8MM4PZ
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/QVPTPA -O "data2D_gzipped_famfiles_0.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/YYFUNW -O "data2D_gzipped_famfiles_1.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/JZ95PW -O "data2D_gzipped_famfiles_2.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/5GJ35G -O "data2D_gzipped_famfiles_3.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/C1XMUR -O "data2D_gzipped_famfiles_4.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/RWB3IE -O "data2D_gzipped_famfiles_5.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/8MM4PZ -O "data2D_gzipped_famfiles_6.h5"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/ITNLHW -O "inputMatrix.npz"
+wget  https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/K33G15/WO6NWR -O "Solution.npz"
